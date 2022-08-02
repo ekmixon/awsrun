@@ -274,7 +274,7 @@ class JSON(_CachingLoaderPlugin):
     def instantiate(self, args):
         cfg = self.cfg
 
-        loader = JSONAccountLoader(
+        return JSONAccountLoader(
             url=args.loader_url,
             max_age=args.loader_max_age,
             id_attr=cfg("id_attr", must_exist=True),
@@ -284,8 +284,6 @@ class JSON(_CachingLoaderPlugin):
             exclude_attrs=cfg("exclude_attrs", type=List(Str), default=[]),
             no_verify=args.loader_no_verify,
         )
-
-        return loader
 
 
 class YAML(_CachingLoaderPlugin):
@@ -454,7 +452,7 @@ class YAML(_CachingLoaderPlugin):
     def instantiate(self, args):
         cfg = self.cfg
 
-        loader = YAMLAccountLoader(
+        return YAMLAccountLoader(
             url=args.loader_url,
             max_age=args.loader_max_age,
             id_attr=cfg("id_attr", must_exist=True),
@@ -464,8 +462,6 @@ class YAML(_CachingLoaderPlugin):
             exclude_attrs=cfg("exclude_attrs", type=List(Str), default=[]),
             no_verify=args.loader_no_verify,
         )
-
-        return loader
 
 
 class CSV(_CachingLoaderPlugin):
@@ -594,7 +590,7 @@ class CSV(_CachingLoaderPlugin):
     def instantiate(self, args):
         cfg = self.cfg
 
-        loader = CSVAccountLoader(
+        return CSVAccountLoader(
             url=args.loader_url,
             max_age=args.loader_max_age,
             delimiter=args.loader_delimiter,
@@ -604,5 +600,3 @@ class CSV(_CachingLoaderPlugin):
             exclude_attrs=cfg("exclude_attrs", type=List(Str), default=[]),
             no_verify=args.loader_no_verify,
         )
-
-        return loader

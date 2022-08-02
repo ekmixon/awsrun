@@ -419,8 +419,7 @@ class MetaAccountLoader(AccountLoader):
             requested = set(acct_ids)
             all_ids = (a[self.id_attr] for a in self.accts)
 
-            missing_acct_ids = requested.difference(all_ids)
-            if missing_acct_ids:
+            if missing_acct_ids := requested.difference(all_ids):
                 raise AccountsNotFoundError(list(missing_acct_ids))
 
             accts = (a for a in self.accts if a[self.id_attr] in requested)
@@ -450,11 +449,13 @@ class MetaAccountLoader(AccountLoader):
         # same as the account object that is created via `MetaAccountLoader`
         # which is why we used dict notation when accessing the account.
         def test(dictionary, default):
-            if not dictionary:
-                return default
-            return all(
-                any(acct[attr] == v for v in values)
-                for attr, values in dictionary.items()
+            return (
+                all(
+                    any(acct[attr] == v for v in values)
+                    for attr, values in dictionary.items()
+                )
+                if dictionary
+                else default
             )
 
         included = test(include, True)
@@ -511,7 +512,7 @@ class MetaAccountLoader(AccountLoader):
         try:
             return reduce(lambda d, p: d[p], self.path, accts)
         except Exception:
-            raise ValueError(f"Cannot find accounts, did you specify the correct path?")
+            raise ValueError("Cannot find accounts, did you specify the correct path?")
 
     def _convert_dict_of_accts_to_list(self, accts):
         """Converts a dict of accounts to a list of accounts.
@@ -540,9 +541,7 @@ class MetaAccountLoader(AccountLoader):
         """
         for key, acct in accts.items():
             if not isinstance(acct, dict):
-                raise TypeError(
-                    f"Accounts are not dicts, did you specify the correct path?"
-                )
+                raise TypeError("Accounts are not dicts, did you specify the correct path?")
 
             if self.id_attr not in acct:
                 acct[self.id_attr] = key
@@ -572,8 +571,7 @@ class MetaAccountLoader(AccountLoader):
         invalid attributes that are not present in the account dicts.
         """
         tokens = re.findall(r"\{(\w+)(?::[^}]+)?\}", self.str_template, re.ASCII)
-        unknown = set(tokens).difference(attrs)
-        if unknown:
+        if unknown := set(tokens).difference(attrs):
             raise InvalidFormatTemplateError(unknown, list(attrs))
 
     def _normalize_attribute_names(self, accts):
@@ -896,8 +894,7 @@ class AzureCLIAccountLoader(MetaAccountLoader):
                 accts.append(subscription)
                 continue
 
-            match = name_regexp.search(subscription.get("name"))
-            if match:
+            if match := name_regexp.search(subscription.get("name")):
                 for k, v in match.groupdict().items():
                     subscription[k] = v
             else:
@@ -1027,5 +1024,5 @@ def _make_valid_attribute_name(s):
         s = re.sub(r"[^0-9a-zA-Z_]", r"_", s)
         s = re.sub(r"^([0-9]+)", r"_\1", s)
     if keyword.iskeyword(s):
-        s = s + "_"
+        s = f"{s}_"
     return s

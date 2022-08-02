@@ -79,9 +79,7 @@ class CLICommand(Command):
         self.no_access = []
 
     def execute(self, session, acct):
-        if self.verbose:
-            return f"{acct}: successful\n"
-        return None
+        return f"{acct}: successful\n" if self.verbose else None
 
     def collect_results(self, acct, get_result):
         self.total += 1

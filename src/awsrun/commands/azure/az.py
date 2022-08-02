@@ -327,23 +327,10 @@ class CLICommand(Command):
             cmd += ["--output", self.output]
         LOG.info("%s: Azure CLI command: %s", acct, cmd)
 
-        # Although the execute method receives a valid credential in the
-        # `session` argument, I've not found a way to pass that to the az CLI
-        # command. It doesn't matter though as az CLI users will simply use `az
-        # login` before running this azurerun wrapper.
-
-        # We call run() and capture stdout and stderr from the command's output.
-        # Note: all the output is stored in memory, and then printed in
-        # collect_results. This means that if you run an az CLI command that
-        # generates huge amounts of data, it'll all be stored in memory. Why
-        # don't we stream tho output from a pipe? We could use Popen directly,
-        # but if we returned from execute() before reading all of the results,
-        # then the worker will start another account, so in essence, all of the
-        # accounts will be "executed" immediately resulting in potentially many
-        # many Azure CLI command processes running waiting for us to read the
-        # output.
-
-        result = subprocess.run(
+        # Lastly, we return the ProcessCompleted object from the run() method.
+        # Recall, an azurerun command can return anything if you provide your
+        # own collect_results method.
+        return subprocess.run(
             cmd,
             check=False,
             universal_newlines=True,
@@ -351,18 +338,13 @@ class CLICommand(Command):
             stderr=subprocess.PIPE,
         )
 
-        # Lastly, we return the ProcessCompleted object from the run() method.
-        # Recall, an azurerun command can return anything if you provide your
-        # own collect_results method.
-        return result
-
     def collect_results(self, acct, get_result):
         """Print the results to the console and files if specified."""
 
         def annotate_lines(text, delimiter=": ", file=sys.stdout, separator=False):
             for line in filter(None, text.split("\n")):
                 print(f"{acct}{delimiter}{line}", file=file, flush=True)
-            if separator and not text == "\n":
+            if separator and text != "\n":
                 print()
 
         def annotate_json(text):

@@ -107,6 +107,4 @@ def _vpc_attribute(attr, vpc):
     # capitalized, so that's why this is not as simple as it should be.
     result = vpc.describe_attribute(Attribute=attr)
     attr = attr[0].upper() + attr[1:]  # Capitalize first letter
-    if attr not in result:
-        return None
-    return result[attr]["Value"]
+    return None if attr not in result else result[attr]["Value"]

@@ -330,7 +330,7 @@ def test_csv_account_loader_with_file_url(
         f.write(csv_content)
     mock_mal = mocker.patch("awsrun.acctload.MetaAccountLoader.__init__")
 
-    url = "file://" + csv_file.as_posix()
+    url = f"file://{csv_file.as_posix()}"
 
     if delimiter:
         acctload.CSVAccountLoader(url, delimiter=delimiter)
@@ -353,7 +353,7 @@ def test_json_account_loader_with_file_url(
         f.write(json_string)
     mock_mal = mocker.patch("awsrun.acctload.MetaAccountLoader.__init__")
 
-    url = "file://" + json_file.as_posix()
+    url = f"file://{json_file.as_posix()}"
 
     acctload.JSONAccountLoader(url, max_age=0)
 
@@ -369,7 +369,7 @@ def test_yaml_account_loader_with_file_url(
         f.write(yaml_string)
     mock_mal = mocker.patch("awsrun.acctload.MetaAccountLoader.__init__")
 
-    url = "file://" + yaml_file.as_posix()
+    url = f"file://{yaml_file.as_posix()}"
 
     acctload.YAMLAccountLoader(url, max_age=0)
 

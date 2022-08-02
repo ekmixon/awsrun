@@ -85,10 +85,12 @@ class CLICommand(Command):
         creds = session.get_credentials()
 
         try:
-            session_creds = {}
-            session_creds["sessionId"] = creds.access_key
-            session_creds["sessionKey"] = creds.secret_key
-            session_creds["sessionToken"] = creds.token
+            session_creds = {
+                "sessionId": creds.access_key,
+                "sessionKey": creds.secret_key,
+                "sessionToken": creds.token,
+            }
+
         except AttributeError:
             return f"{acct}: can only be used with federated auth types"
 

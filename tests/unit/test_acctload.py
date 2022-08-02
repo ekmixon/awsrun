@@ -61,53 +61,13 @@ def many_acct_list():
     ]
 
 
-@pytest.mark.parametrize(
-    "test_input, include, exclude, expected",
-    [
-        (["100200300400"], {}, {}, set(["100200300400"])),
-        (["100200300400"], {"status": ["suspended"]}, {}, set()),
-        (
-            ["300400100200", "100200300400"],
-            {},
-            {},
-            set(["300400100200", "100200300400"]),
-        ),
-        (
-            ["300400100200", "100200300400"],
-            {},
-            {"status": ["suspended"]},
-            set(["100200300400"]),
-        ),
-        (["300400100200", "100200300400"], {"env": ["dev"]}, {}, set(["300400100200"])),
-        ([], {}, {}, set(["100200300400", "200300400100", "300400100200"])),
-        ([], {"env": ["prod", "nonprod"]}, {}, set(["100200300400", "200300400100"])),
-        (
-            [],
-            {"status": ["active", "no_such_value"]},
-            {},
-            set(["100200300400", "200300400100"]),
-        ),
-        (
-            [],
-            {"status": ["active"]},
-            {"env": ["nonprod", "dev"]},
-            set(["100200300400"]),
-        ),
-        ([], {"status": ["active"]}, {"env": ["nonprod", "dev", "prod"]}, set()),
-        (
-            [],
-            {"status": ["active", "suspended"]},
-            {"status": ["active", "no_such_value"]},
-            set(["300400100200"]),
-        ),
-    ],
-)
+@pytest.mark.parametrize("test_input, include, exclude, expected", [(["100200300400"], {}, {}, {"100200300400"}), (["100200300400"], {"status": ["suspended"]}, {}, set()), (["300400100200", "100200300400"], {}, {}, {"300400100200", "100200300400"}), (["300400100200", "100200300400"], {}, {"status": ["suspended"]}, {"100200300400"}), (["300400100200", "100200300400"], {"env": ["dev"]}, {}, {"300400100200"}), ([], {}, {}, {"100200300400", "200300400100", "300400100200"}), ([], {"env": ["prod", "nonprod"]}, {}, {"100200300400", "200300400100"}), ([], {"status": ["active", "no_such_value"]}, {}, {"100200300400", "200300400100"}), ([], {"status": ["active"]}, {"env": ["nonprod", "dev"]}, {"100200300400"}), ([], {"status": ["active"]}, {"env": ["nonprod", "dev", "prod"]}, set()), ([], {"status": ["active", "suspended"]}, {"status": ["active", "no_such_value"]}, {"300400100200"})])
 def test_meta_account_loader_accounts(
     many_acct_list, test_input, include, exclude, expected
 ):
     mal = acctload.MetaAccountLoader(many_acct_list)
     accts = mal.accounts(acct_ids=test_input, include=include, exclude=exclude)
-    acct_ids = set([a.id for a in accts])
+    acct_ids = {a.id for a in accts}
     assert acct_ids == expected
 
 
@@ -222,8 +182,7 @@ def test_load_without_default_id_attribute(test_input):
 
 @pytest.mark.parametrize("test_input", ["id", "ID", "acctId"])
 def test_load_with_custom_id_attribute(test_input):
-    d = {}
-    d[test_input] = "10"
+    d = {test_input: "10"}
     mal = acctload.MetaAccountLoader([d], id_attr=test_input)
     assert mal.acct_id(mal.accounts()[0]) == "10", "custom id did not return acct #"
 

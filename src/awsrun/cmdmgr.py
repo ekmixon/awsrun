@@ -203,7 +203,7 @@ class ChainLoader(CommandLoader):
             try:
                 return loader.load(command_name)
             except CommandNotFoundError as e:
-                path_errors.update(e.path_errors)
+                path_errors |= e.path_errors
 
         raise CommandNotFoundError(command_name, path_errors)
 
@@ -219,7 +219,7 @@ class ChainLoader(CommandLoader):
             # dict.update() replaces existing keys with new values, so reversing
             # the list ensures that loaders at the beginning of the list take
             # priority over those that come afterwards.
-            classes.update(loader.load_all())
+            classes |= loader.load_all()
 
         return classes
 
@@ -238,7 +238,7 @@ class DirectoryLoader(CommandLoader):
             sys.path.append(directory_path)
 
     def load(self, command_name):
-        fullpath = os.path.join(self.path, command_name) + ".py"
+        fullpath = f"{os.path.join(self.path, command_name)}.py"
         LOG.info("loading command at '%s'", fullpath)
         try:
             # We inspect the AST of the python file without importing it because

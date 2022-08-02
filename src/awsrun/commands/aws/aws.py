@@ -487,23 +487,16 @@ class CLICommand(RegionalCommand):
         new_vars = {
             "AWS_ACCESS_KEY_ID": creds.access_key,
             "AWS_SECRET_ACCESS_KEY": creds.secret_key,
-            "AWS_SESSION_TOKEN": creds.token if creds.token else "",
+            "AWS_SESSION_TOKEN": creds.token or "",
         }
+
 
         env = ChainMap(new_vars, os.environ)
 
-        # We call run() and capture stdout and stderr from the command's
-        # output. Note: all the output is stored in memory, and then printed
-        # in collect_results. This means that if you run an AWS cli command
-        # that generates huge amounts of data, it'll all be stored in
-        # memory. Why don't we stream tho output from a pipe? We could use
-        # Popen directly, but if we returned from execute() before reading
-        # all of the results, then the worker will start another account, so
-        # in essence, all of the accounts will be "executed" immediately
-        # resulting in potentially many many AWS cli command processes
-        # running waiting for us to read the output.
-
-        result = subprocess.run(
+        # Lastly, we return the ProcessCompleted object from the run() method.
+        # Recall, an awsrun command can return anything if you provide your own
+        # collect_results method.
+        return subprocess.run(
             cmd,
             env=env,
             check=False,
@@ -511,11 +504,6 @@ class CLICommand(RegionalCommand):
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
-
-        # Lastly, we return the ProcessCompleted object from the run() method.
-        # Recall, an awsrun command can return anything if you provide your own
-        # collect_results method.
-        return result
 
     def regional_collect_results(self, acct, region, get_result):
         """Print the results to the console and files if specified."""

@@ -52,7 +52,7 @@ class AppendWithoutDefault(argparse.Action):
         super().__init__(*args, **kwargs)
 
     def __call__(self, parser, namespace, values, option_string=None):
-        current = [] if not self.has_been_called else getattr(namespace, self.dest)
+        current = getattr(namespace, self.dest) if self.has_been_called else []
         current.append(values)
         setattr(namespace, self.dest, current)
         self.has_been_called = True

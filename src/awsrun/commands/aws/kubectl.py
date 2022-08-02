@@ -252,12 +252,15 @@ class CLICommand(RegionalCommand):
                 parser.error("Do not specify --{arg} with awsrun kubectl")
             delattr(args, attr)
 
-        if args.awsrun_annotate and args.output:
-            if args.awsrun_annotate != "text":
-                if args.awsrun_annotate != args.output:
-                    parser.error(
-                        "When specifying --awsrun-annotate, you do not need the --output flag"
-                    )
+        if (
+            args.awsrun_annotate
+            and args.output
+            and args.awsrun_annotate != "text"
+            and args.awsrun_annotate != args.output
+        ):
+            parser.error(
+                "When specifying --awsrun-annotate, you do not need the --output flag"
+            )
 
         return cls(**vars(args))
 
@@ -314,7 +317,7 @@ class CLICommand(RegionalCommand):
             return [_Result(clusters, None, None, None)]
 
         results = []
-        for name in self.clusters if self.clusters else _list_clusters(eks):
+        for name in self.clusters or _list_clusters(eks):
             cluster = eks.describe_cluster(name=name)
             for namespace in self.namespaces:
                 # Write a kubecfg file to ~/.kube/awsrun-ACCT-CLUSTER-NAMESPACE
@@ -495,6 +498,5 @@ def _save_kubecfg(name, namespace, account_id, region, cluster, session):
 def _list_clusters(eks):
     clusters = []
     for page in eks.get_paginator("list_clusters").paginate():
-        for name in page["clusters"]:
-            clusters.append(name)
+        clusters.extend(iter(page["clusters"]))
     return clusters

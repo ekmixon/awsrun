@@ -40,7 +40,7 @@ def test_expiring_value_no_caching():
     value1 = ev.value()
     value2 = ev.value()
     value3 = ev.value()
-    assert value1 != value2 and value2 != value3, "values should not be cached"
+    assert value1 != value2 != value3, "values should not be cached"
 
 
 def test_persistent_expiring_value_caching(tmp_path):
@@ -90,4 +90,4 @@ def test_persistent_expiring_value_no_caching(tmp_path):
     value3 = ev.value()
     assert not cache_file.exists()
 
-    assert value1 != value2 and value2 != value3, "values should not be cached"
+    assert value1 != value2 != value3, "values should not be cached"

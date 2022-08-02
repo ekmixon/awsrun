@@ -267,17 +267,17 @@ class CLICommand(RegionalCommand):
         # explicity set their own filter or use one of our the shorthand
         # filters such as --all or --console.
 
-        if not (args.all or args.console or args.attributes):
+        if not args.all and not args.console and not args.attributes:
             args.attributes["ReadOnly"] = ["false"]
 
         elif args.console:
             args.attributes["EventName"] = ["ConsoleLogin"]
 
         elif len(args.attributes) > 1:
-            parser.error(f"only one lookup attribute may be used per AWS")
+            parser.error("only one lookup attribute may be used per AWS")
 
         elif any(len(v) > 1 for v in args.attributes.values()):
-            parser.error(f"only one lookup value may be specified per AWS")
+            parser.error("only one lookup value may be specified per AWS")
 
         elif any(a not in LOOKUP_ATTRIBUTES for a in args.attributes):
             parser.error(
@@ -285,16 +285,16 @@ class CLICommand(RegionalCommand):
             )
 
         # If no time spec flags provided, default to last of 1 hour of events.
-        if not (args.hours or args.start or args.end):
+        if not args.hours and not args.start and not args.end:
             args.hours = 1
 
         # If only --hours was specified, then compute a start and end time as
         # our CLICommand doesn't support --last.
-        if args.hours and not (args.start or args.end):
+        if args.hours and not args.start and not args.end:
             args.end = datetime.now(timezone.utc)
             args.start = args.end - timedelta(hours=args.hours)
 
-        elif args.hours and (args.start or args.end):
+        elif args.hours:
             parser.error("must specify either --hours OR --start/--end flags")
 
         elif not (args.start and args.end):
@@ -397,13 +397,13 @@ class CLICommand(RegionalCommand):
         # around many of its limitations that I will submit to the author.
         if self.vertical:
             root = _MyCUI(4, 1)
-            user_list = root.add_my_scroll_menu(f"Usernames", 0, 0)
+            user_list = root.add_my_scroll_menu("Usernames", 0, 0)
             event_list = root.add_my_scroll_menu("Events", 1, 0)
             event_detail = root.add_my_scroll_menu("Event Detail", 2, 0, row_span=2)
 
         else:  # Default hybrid layout
             root = _MyCUI(3, 4)
-            user_list = root.add_my_scroll_menu(f"Usernames", 0, 0, column_span=2)
+            user_list = root.add_my_scroll_menu("Usernames", 0, 0, column_span=2)
             event_list = root.add_my_scroll_menu(
                 "Events", 1, 0, row_span=2, column_span=2
             )
@@ -521,8 +521,7 @@ class _UserIdentityType:
     def username(self):
         """Return a the username associated with an event."""
         if self.event["EventName"].startswith("AssumeRole"):
-            user = self._parse_username_from_request_params()
-            if user:
+            if user := self._parse_username_from_request_params():
                 return user
         return self._parse_username()
 
@@ -583,11 +582,7 @@ class _AWSServiceType(_UserIdentityType):
 
 class _AssumedRoleType(_UserIdentityType):
     def _parse_username(self):
-        # For an assumed role type, we get username from the arn because it's
-        # the only thing consistent throughout the other type of events, which
-        # allows us to match a sequence of events.
-        arn = self.user_identity.get("arn")
-        if arn:
+        if arn := self.user_identity.get("arn"):
             return _strip_to("/", arn)
         return self.event.get("Username")
 
@@ -663,7 +658,7 @@ class _MyCUI(py_cui.PyCUI):
     def add_my_scroll_menu(
         self, title, row, column, row_span=1, column_span=1, padx=1, pady=0
     ):
-        id = "Widget{}".format(len(self.widgets.keys()))
+        id = f"Widget{len(self.widgets.keys())}"
         new_scroll_menu = _MyScrollMenu(
             id, title, self.grid, row, column, row_span, column_span, padx, pady
         )
@@ -698,8 +693,8 @@ class _MyScrollMenu(py_cui.widgets.ScrollMenu):
         new_top_view = self.top_view - shift_by
         new_selected_item = self.selected_item - shift_by
 
-        self.top_view = 0 if new_top_view < 0 else new_top_view
-        self.selected_item = 0 if new_selected_item < 0 else new_selected_item
+        self.top_view = max(new_top_view, 0)
+        self.selected_item = max(new_selected_item, 0)
 
     def page_down(self):
         shift_by = self.height - (2 * self.pady) - 3
@@ -726,9 +721,7 @@ class _MyScrollMenu(py_cui.widgets.ScrollMenu):
         counter = self.pady + 1
         line_counter = 0
         for line in (self.to_str(i) for i in self.view_items):
-            if line_counter < self.top_view:
-                line_counter = line_counter + 1
-            else:
+            if line_counter >= self.top_view:
                 if counter >= self.height - self.pady - 1:
                     break
                 if line_counter == self.selected_item:
@@ -738,8 +731,7 @@ class _MyScrollMenu(py_cui.widgets.ScrollMenu):
                 else:
                     self.renderer.draw_text(self, line, self.start_y + counter)
                 counter = counter + 1
-                line_counter = line_counter + 1
-
+            line_counter = line_counter + 1
         self.renderer.unset_color_mode(
             self.selected_color if self.selected else self.color
         )

@@ -350,15 +350,13 @@ class AbstractCrossAccount(Plugin):
         raise NotImplementedError
 
     def instantiate(self, args):
-        session_provider = CredsViaCrossAccount(
+        return CredsViaCrossAccount(
             base_auth=self._get_base_auth().instantiate(args),
             base_acct=args.x_acct_base,
             role=args.x_acct_role,
             external_id=args.x_acct_external_id,
             duration=args.x_acct_duration,
         )
-
-        return session_provider
 
 
 class ProfileCrossAccount(AbstractCrossAccount):

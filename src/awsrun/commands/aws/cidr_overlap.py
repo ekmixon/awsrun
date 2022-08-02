@@ -79,9 +79,7 @@ class _CIDR:
         # If the VPCs are the same, then there is no overlap. This can happen
         # when a VPC is shared between accounts. Each account will have the
         # same CDIR block, so we make sure they aren't the same VPC.
-        if self.vpc == other.vpc:
-            return False
-        return self.block.overlaps(other.block)
+        return False if self.vpc == other.vpc else self.block.overlaps(other.block)
 
 
 class CLICommand(RegionalCommand):
@@ -125,7 +123,7 @@ class CLICommand(RegionalCommand):
     def post_hook(self):
         overlap = []
 
-        for i in range(0, len(self.cidrs)):
+        for i in range(len(self.cidrs)):
             c1 = self.cidrs[i]
             for j in range(i + 1, len(self.cidrs)):
                 c2 = self.cidrs[j]

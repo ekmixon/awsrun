@@ -945,8 +945,9 @@ def _cli(csp):
     )
 
     parser.add_argument(
-        "--version", action="version", version="%(prog)s " + awsrun.__version__
+        "--version", action="version", version=f"%(prog)s {awsrun.__version__}"
     )
+
 
     parser.add_argument(
         "--log-level",
@@ -1139,7 +1140,7 @@ def _ask_for_confirmation(accts):
     _print_accounts(accts, out=sys.stderr)
     print("Proceed (y/n)? ", flush=True, end="", file=sys.stderr)
     answer = input()
-    if not answer.lower() in ["y", "yes"]:
+    if answer.lower() not in ["y", "yes"]:
         print("Exiting", file=sys.stderr)
         sys.exit(0)
 
@@ -1185,17 +1186,17 @@ class _CSP:
 
     def config_filename(self):
         """Returns the path to the user configuration."""
-        env_var = self.name.upper() + "RUN_CONFIG"
-        dotfile = "." + self.name.lower() + "run.yaml"
+        env_var = f"{self.name.upper()}RUN_CONFIG"
+        dotfile = f".{self.name.lower()}run.yaml"
         return os.environ.get(env_var, Path.home() / dotfile)
 
     def default_command_path(self):
         """Returns the path to the builtin commands submodule."""
-        return "awsrun.commands." + self.name.lower()
+        return f"awsrun.commands.{self.name.lower()}"
 
     def default_session_provider(self):
         """Returns the module name of the builtin Profile session provider."""
-        return "awsrun.plugins.creds." + self.name.lower() + ".Default"
+        return f"awsrun.plugins.creds.{self.name.lower()}.Default"
 
 
 if __name__ == "__main__":

@@ -18,9 +18,10 @@ def read(*names, **kwargs):
 
 def find_version(*file_paths):
     contents = read(*file_paths)
-    match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]", contents, re.M)
-    if match:
-        return match.group(1)
+    if match := re.search(
+        r"^__version__ = ['\"]([^'\"]*)['\"]", contents, re.M
+    ):
+        return match[1]
     raise RuntimeError("Unable to find version string.")
 
 

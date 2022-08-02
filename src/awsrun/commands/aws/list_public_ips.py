@@ -68,8 +68,7 @@ class CLICommand(RegionalCommand):
                 #     public_ips[vpc.id].append(ni.association.public_ip)
 
                 if ni.association_attribute:
-                    ip = ni.association_attribute.get("PublicIp")
-                    if ip:
+                    if ip := ni.association_attribute.get("PublicIp"):
                         public_ips[(vpc.id, vpc.owner_id)].append(ip)
 
         # We include the owner id in the output as sometimes a VPC has been

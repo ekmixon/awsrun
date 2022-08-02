@@ -509,10 +509,9 @@ class CLICommand(Command):
         doc = get_doc()
         if self.search_actions and not has_actions(doc, self.search_actions):
             return True
-        if self.not_search_actions and has_actions(doc, self.not_search_actions):
-            return True
-
-        return False
+        return bool(
+            self.not_search_actions and has_actions(doc, self.not_search_actions)
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -570,10 +569,7 @@ def make_list(obj):
     """Returns obj if it is a list, otherwise returns a list of one element
     containing obj. This is due to AWS's inconsistent use of JSON arrays."""
 
-    if isinstance(obj, list):
-        return obj
-
-    return [obj]
+    return obj if isinstance(obj, list) else [obj]
 
 
 def get_identities(collection, subresource, search_names):

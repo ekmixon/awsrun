@@ -110,6 +110,4 @@ class CLICommand(RegionalCommand):
 
 
 def _is_public(fn):
-    if "VpcConfig" not in fn:
-        return True
-    return len(fn["VpcConfig"]["SubnetIds"]) == 0
+    return len(fn["VpcConfig"]["SubnetIds"]) == 0 if "VpcConfig" in fn else True

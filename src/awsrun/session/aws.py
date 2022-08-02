@@ -418,7 +418,7 @@ class CredsViaSAML(CachingSessionProvider):
             resp = s.get(self._url, verify=not self._no_verify)
 
         if resp.status_code == 401:
-            raise IDPAccessDeniedException(f"Could not authenticate")
+            raise IDPAccessDeniedException("Could not authenticate")
         if not 200 <= resp.status_code < 300:
             raise IDPInvalidResponseException(
                 f"{resp.status_code} response from {self._url}"
@@ -433,8 +433,9 @@ class CredsViaSAML(CachingSessionProvider):
 
         if len(saml) != 1:
             raise IDPInvalidResponseException(
-                f"Cannot extract SAML assertion from response"
+                "Cannot extract SAML assertion from response"
             )
+
 
         # Indexing is guaranteed to succeed as we check the length above
         return saml[0]
@@ -447,10 +448,13 @@ class CredsViaSAML(CachingSessionProvider):
         roles = []
         for attr in root.iter("{urn:oasis:names:tc:SAML:2.0:assertion}Attribute"):
             if attr.get("Name") == "https://aws.amazon.com/SAML/Attributes/Role":
-                for value in attr.iter(
-                    "{urn:oasis:names:tc:SAML:2.0:assertion}AttributeValue"
-                ):
-                    roles.append(value.text)
+                roles.extend(
+                    value.text
+                    for value in attr.iter(
+                        "{urn:oasis:names:tc:SAML:2.0:assertion}AttributeValue"
+                    )
+                )
+
         LOG.info("roles in SAML response: %s", roles)
 
         # Note the format of the attribute value should be role,principal but
@@ -474,17 +478,15 @@ class CredsViaSAML(CachingSessionProvider):
         principal_arn = filtered_roles[0][1]
 
         LOG.info("Assuming role with SAML for %s with %s", role_arn, principal_arn)
-        assumed_role = boto3.client("sts").assume_role_with_saml(
+        if assumed_role := boto3.client("sts").assume_role_with_saml(
             RoleArn=role_arn,
             PrincipalArn=principal_arn,
             SAMLAssertion=saml,
             DurationSeconds=self._duration,
-        )
-
-        if not assumed_role:
+        ):
+            return assumed_role["Credentials"]
+        else:
             raise AWSAssumeRoleException(f"Cannot assume role: {role_arn}")
-
-        return assumed_role["Credentials"]
 
 
 class CredsViaCrossAccount(CachingSessionProvider):
@@ -536,12 +538,10 @@ class CredsViaCrossAccount(CachingSessionProvider):
         if self._external_id:
             kwargs["ExternalId"] = self._external_id
 
-        assumed_role = sts.assume_role(**kwargs)
-
-        if not assumed_role:
+        if assumed_role := sts.assume_role(**kwargs):
+            return assumed_role["Credentials"]
+        else:
             raise AWSAssumeRoleException(f"Cannot assume role: {role_arn}")
-
-        return assumed_role["Credentials"]
 
 
 class IDPAccessDeniedException(Exception):

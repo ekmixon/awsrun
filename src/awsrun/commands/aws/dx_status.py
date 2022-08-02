@@ -255,9 +255,9 @@ class CLICommand(RegionalCommand):
 
         # Build a map of connections keyed by the connection ID. This will be
         # used in our code below when we need to look up connection details.
-        conn_by_id = {}
-        for c in dx.describe_connections()["connections"]:
-            conn_by_id[c["connectionId"]] = c
+        conn_by_id = {
+            c["connectionId"]: c for c in dx.describe_connections()["connections"]
+        }
 
         # If there are no connections, then return with an empty string so
         # nothing is displayed to the user. Remember, the execute method must
@@ -387,7 +387,7 @@ def _vif2str(vif, conn):
     # will be the empty string
     v_gwid = vif["virtualGatewayId"]
     v_dxgwid = vif["directConnectGatewayId"]
-    gwid = v_gwid if v_gwid else f"dxgw {v_dxgwid}"
+    gwid = v_gwid or f"dxgw {v_dxgwid}"
 
     return f"{v_id} on {gwid} vlan {v_vlan} owned by {v_owner} on {c_name} is {v_state}"
 
@@ -397,7 +397,7 @@ def _conn2str(conn, vifs):
     c_name = conn["connectionName"]
     c_state = conn["connectionState"].upper()
     c_bandwidth = " ".join(re.findall(r"[A-Za-z]+|\d+", conn["bandwidth"]))
-    v_down = sum(1 for v in vifs if v["virtualInterfaceState"] == "down")
+    v_down = sum(v["virtualInterfaceState"] == "down" for v in vifs)
 
     return "".join(
         [
@@ -408,13 +408,13 @@ def _conn2str(conn, vifs):
             Fore.YELLOW,
             f"{c_name:22.22} ",
             Style.RESET_ALL,
-            (Fore.GREEN if c_state == "AVAILABLE" else Fore.RED),
+            Fore.GREEN if c_state == "AVAILABLE" else Fore.RED,
             f"{c_state:10} ",
             Fore.BLUE,
             f"{c_bandwidth:7} ",
             Fore.MAGENTA,
             f"{len(vifs):3} VIFs ",
-            (Fore.RED + f"({v_down} down)" if v_down > 0 else ""),
+            f"{Fore.RED}({v_down} down)" if v_down > 0 else "",
             Fore.RESET,
         ]
     )

@@ -255,7 +255,7 @@ class Not(Type):
         return not self.config_type.type_check(obj)
 
     def __str__(self):
-        return "not " + str(self.config_type)
+        return f"not {str(self.config_type)}"
 
 
 class Or(Type):
@@ -275,7 +275,7 @@ class Or(Type):
 
     def __str__(self):
         s = " or ".join(str(t) for t in self.config_types)
-        return "(" + s + ")"
+        return f"({s})"
 
 
 class And(Type):
@@ -294,7 +294,7 @@ class And(Type):
 
     def __str__(self):
         s = " and ".join(str(t) for t in self.config_types)
-        return "(" + s + ")"
+        return f"({s})"
 
 
 class Const(Type):
@@ -309,9 +309,7 @@ class Const(Type):
         # we did not check types, then this would report incorrect results.
         # Likewise, we cannot use isinstance here either as a bool is a subclass
         # of int, so it would also report incorrect results.
-        if type(obj) != type(self.const):  # noqa: E721
-            return False
-        return obj == self.const
+        return False if type(obj) != type(self.const) else obj == self.const
 
     def __str__(self):
         return f"constant '{self.const}'"
@@ -354,9 +352,7 @@ class StrMatch(Type):
         self.pattern = pattern
 
     def type_check(self, obj):
-        if type(obj) != str:
-            return False
-        return bool(re.search(self.pattern, obj))
+        return False if type(obj) != str else bool(re.search(self.pattern, obj))
 
     def __str__(self):
         return f"str matching '{self.pattern}'"
@@ -398,9 +394,7 @@ class FileType(Type):
     """Represents a string pointing to an existing file."""
 
     def type_check(self, obj):
-        if type(obj) != str:
-            return False
-        return Path(obj).exists()
+        return False if type(obj) != str else Path(obj).exists()
 
     def __str__(self):
         return "existing file"

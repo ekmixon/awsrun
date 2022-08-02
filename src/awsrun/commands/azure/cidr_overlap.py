@@ -75,9 +75,7 @@ class _CIDR:
         # If the VNETs are the same, then there is no overlap. This can happen
         # when a VNET is shared between accounts. Each account will have the
         # same CDIR block, so we make sure they aren't the same VNET.
-        if self.vnet == other.vnet:
-            return False
-        return self.block.overlaps(other.block)
+        return False if self.vnet == other.vnet else self.block.overlaps(other.block)
 
 
 class CLICommand(Command):
@@ -121,7 +119,7 @@ class CLICommand(Command):
     def post_hook(self):
         overlap = []
 
-        for i in range(0, len(self.cidrs)):
+        for i in range(len(self.cidrs)):
             c1 = self.cidrs[i]
             for j in range(i + 1, len(self.cidrs)):
                 c2 = self.cidrs[j]

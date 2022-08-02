@@ -805,9 +805,10 @@ def get_paginated_resources(
     """
     resources = []
     for page in client.get_paginator(paginator).paginate(**kwargs):
-        for resource in page[page_key]:
-            if predicate(resource):
-                resources.append(resource)
+        resources.extend(
+            resource for resource in page[page_key] if predicate(resource)
+        )
+
     return resources
 
 
